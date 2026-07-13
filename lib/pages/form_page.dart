@@ -158,7 +158,10 @@ class _FormScreenState extends State<FormScreen> {
                 keyboardType: TextInputType.number,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Tahun harus diisi';
-                  if (int.tryParse(v.trim()) == null) return 'Harus berupa angka';
+                  final tahun = int.tryParse(v.trim());
+                  if (tahun == null) return 'Harus berupa angka';
+                  if (tahun < 1000) return 'Minimal tahun 1000';
+                  if (tahun > DateTime.now().year) return 'Tidak boleh melebihi tahun sekarang';
                   return null;
                 },
               ),

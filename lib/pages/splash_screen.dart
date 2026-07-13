@@ -11,8 +11,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Tunggu 2,5 detik lalu pindah ke halaman utama
-    Future.delayed(const Duration(milliseconds: 2500), () {
+    // Tunggu 4 detik lalu pindah ke halaman utama
+    Future.delayed(const Duration(milliseconds: 4000), () {
       if (mounted) Navigator.pushReplacementNamed(context, '/home');
     });
   }
@@ -43,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Koleksi Buku Pribadi',
+              'Koleksi Buku Pribadi Saya',
               style: TextStyle(
                 fontSize: 16,
                 color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),

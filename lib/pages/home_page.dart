@@ -61,68 +61,149 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showDetailDialog(BuildContext ctx, Map<String, dynamic> buku, int index) {
+    // Warna badge status
+    Color warnaStatus(String s) {
+      switch (s) {
+        case 'Selesai Dibaca': return Colors.green;
+        case 'Sedang Dibaca':  return Colors.orange;
+        default:               return Colors.grey;
+      }
+    }
+
     showDialog(
       context: ctx,
-      builder: (dialogCtx) => AlertDialog(
-        title: Text(buku['judul'] ?? ''),
-        content: SingleChildScrollView(
+      builder: (dialogCtx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _detailItem('Penulis', buku['penulis'] ?? ''),
-              _detailItem('Penerbit', buku['penerbit'] ?? ''),
-              _detailItem('Tahun Terbit', '${buku['tahunTerbit'] ?? ''}'),
-              _detailItem('Kategori', buku['kategori'] ?? ''),
-              _detailItem('Jumlah Halaman', '${buku['jumlahHalaman'] ?? ''} halaman'),
-              _detailItem('Status Baca', buku['statusBaca'] ?? ''),
+              // Header dengan ikon & status
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.menu_book_rounded,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          buku['judul'] ?? '',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: warnaStatus(buku['statusBaca'] ?? '')
+                                .withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            buku['statusBaca'] ?? '',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: warnaStatus(buku['statusBaca'] ?? ''),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 24),
+              // Detail field
+              _detailRow(Icons.person_outline, 'Penulis', buku['penulis'] ?? ''),
+              const SizedBox(height: 8),
+              _detailRow(Icons.business_outlined, 'Penerbit', buku['penerbit'] ?? ''),
+              const SizedBox(height: 8),
+              _detailRow(Icons.calendar_today_outlined, 'Tahun', '${buku['tahunTerbit'] ?? ''}'),
+              const SizedBox(height: 8),
+              _detailRow(Icons.category_outlined, 'Kategori', buku['kategori'] ?? ''),
+              const SizedBox(height: 8),
+              _detailRow(Icons.library_books_outlined, 'Halaman', '${buku['jumlahHalaman'] ?? ''} halaman'),
+              const Divider(height: 24),
+              // Tombol aksi
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogCtx),
+                    child: const Text('Tutup'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(dialogCtx);
+                      _confirmHapus(index);
+                    },
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: const Text('Hapus'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    onPressed: () async {
+                      Navigator.pop(dialogCtx);
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => FormScreen(index: index, data: buku),
+                        ),
+                      );
+                      if (result == true) _loadData();
+                    },
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: const Text('Edit'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(dialogCtx);
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => FormScreen(index: index, data: buku),
-                ),
-              );
-              if (result == true) _loadData();
-            },
-            child: const Text('Edit'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogCtx);
-              _confirmHapus(index);
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Hapus'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Tutup'),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _detailItem(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+  Widget _detailRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: Colors.grey[600]),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 70,
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
           ),
-          Expanded(child: Text(value)),
-        ],
-      ),
+        ),
+        Expanded(
+          child: Text(value, style: const TextStyle(fontSize: 15)),
+        ),
+      ],
     );
   }
 
@@ -163,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Data Buku'),
+        title: const Text('Data Buku Pribadi Saya'),
         centerTitle: true,
       ),
       body: Column(
