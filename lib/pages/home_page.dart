@@ -367,64 +367,20 @@ class _HomeScreenState extends State<HomeScreen> {
           final buku = _bukuTampil[i];
           final indexAsli = _semuaBuku.indexOf(buku);
 
-          return Dismissible(
-            key: ValueKey(buku.hashCode),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 20),
-              color: Colors.red,
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            confirmDismiss: (_) async {
-              final hapus = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text('Hapus Buku'),
-                  content: Text(
-                    'Yakin ingin menghapus "${buku['judul'] ?? ''}"?',
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('Batal'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      style: TextButton.styleFrom(foregroundColor: Colors.red),
-                      child: const Text('Hapus'),
-                    ),
-                  ],
+          return BookCard(
+            buku: buku,
+            index: indexAsli,
+            onTap: () => _showDetailDialog(context, buku, indexAsli),
+            onEdit: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => FormScreen(index: indexAsli, data: buku),
                 ),
               );
-              if (hapus == true) {
-                hapusBuku(indexAsli);
-                _loadData();
-                if (!context.mounted) return false;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Buku berhasil dihapus!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              }
-              return false;
+              if (result == true) _loadData();
             },
-            child: BookCard(
-              buku: buku,
-              index: indexAsli,
-              onTap: () => _showDetailDialog(context, buku, indexAsli),
-              onEdit: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => FormScreen(index: indexAsli, data: buku),
-                  ),
-                );
-                if (result == true) _loadData();
-              },
-              onDelete: () => _confirmHapus(indexAsli),
-            ),
+            onDelete: () => _confirmHapus(indexAsli),
           );
         },
       ),
